@@ -77,3 +77,73 @@ function greetJSDoc(name: string, title: string) {
 - 익스포트된 함수, 클래스, 타입에 주석을 달 때는 JSDoc/TSDoc 형태를 사용한다. JSDoc/TSDoc 형태의 주석을 달면 편집기가 주석 정보를 표시해 준다.
 - @param, @returns 구문과 문서 서식을 위해 마크다운을 사용할 수 있다.
 - 주석에 타입 정보를 포함하면 안 된다.
+
+### 아이템 49. 콜백에서 this에 대한 타입 제공하기
+
+- let이나 const로 선언된 변수는 렉시컬 스코프인 반면, this는 다이나믹 스코프이다.
+  - 다이나믹 스코프는 정의된 방식이 아니라 호출된 방식에 따라 달라진다.
+
+```typescript
+class C {
+  vals = [1, 2, 3];
+  logSquares() {
+    for (const val of this.vals) {
+      console.log(val * val);
+    }
+  }
+}
+
+const c = new C();
+const method = c.logSquares;
+method(); // error
+```
+
+- 위의 예시에서 this의 값은 undefined로 설정된다.
+- call을 사용하면 명시적으로 this를 바인딩하여 문제를 해결할 수 있다.
+
+```typescript
+class ResetButton {
+  render() {
+    return makeButton({ text: 'Reset', onClick: this.onClick });
+  }
+
+  onClick() {
+    alert(`Reset ${this}`);
+  }
+}
+```
+
+- 위의 코드는 this 바인딩 문제로 동작하지 않는다.
+
+```typescript
+// solve 1
+class ResetButton {
+  constructor() {
+    this.onClick = this.onClick.bind(this);
+  }
+
+  render() {
+    return makeButton({ text: 'Reset', onClick: this.onClick });
+  }
+
+  onClick() {
+    alert(`Reset ${this}`);
+  }
+}
+
+// solve 2
+class ResetButton {
+  render() {
+    return makeButton({ text: 'Reset', onClick: this.onClick });
+  }
+
+  onClick = () => {
+    alert(`Reset ${this}`);
+  };
+}
+```
+
+#### 요약
+
+- this 바인딩이 동작하는 원리를 이해해야 한다.
+- 콜백 함수에서 this를 사용해야 한다면, 타입 정보를 명시해야 한다.
