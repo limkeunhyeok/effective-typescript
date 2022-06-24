@@ -147,3 +147,59 @@ class ResetButton {
 
 - this 바인딩이 동작하는 원리를 이해해야 한다.
 - 콜백 함수에서 this를 사용해야 한다면, 타입 정보를 명시해야 한다.
+
+### 아이템 50. 오버로딩 타입보다는 조건부 타입을 사용하기
+
+```typescript
+function double(x: number | string): number | string;
+function double(x: any) {
+  return x + x;
+}
+```
+
+- 위의 예시는 string을 넣으면 string이 나오고, number를 넣으면 number를 반환해야 한다.
+
+```typescript
+function double<T extends number | string>(x: T): T;
+function double(x: any) {
+  return x + x;
+}
+```
+
+- 위의 예시는 타입을 구체적으로 만들어 주지만 과한면이 있다.
+
+```typescript
+function double(x: string): string;
+function double(x: number): number;
+function double(x: any) {
+  return x + x;
+}
+```
+
+- 위의 예시는 타입이 명확해졌지만, 유니온 타입 관련해서 문제가 발생한다.
+- 조건부 타입은 타입 공간의 if 구문과 가탇.
+
+```typescript
+function double<T extends number | string>(
+  x: T
+): T extends string ? string : number;
+function double(x: any) {
+  return x + x;
+}
+```
+
+- 오버로딩 타입이 작성하기는 쉽지만, 조건부 타입은 개별 타입의 유니온으로 일반화하기 때문에 타입이 저 정확해진다.
+
+#### 요약
+
+- 오버로딩 타입보다 조건부 타입을 사용하는 것이 좋다. 조건부 타입은 추가적인 오버로딩 없이 유니온 타입을 지원할 수 있다.
+
+### 아이템 51. 의존성 분리를 위해 미러 타입 사용하기
+
+- 작성 중인 라이브러리가 의존하는 라이브러리의 구현과 무관하게 타입에만 의존한다면, 필요한 선언부만 추출하여 작성 중인 라이브러리에 넣는 것(미러링)을 고려해 보는 것이 좋다.
+- 다른 라이브러리의 타입이 아닌 구현에 의존하는 경우에도 동일한 기법을 적용할 수 있고 타입 의존성을 피할 수 있다.
+
+#### 요약
+
+- 필수가 아닌 의존성을 분리할 때는 구조적 타이핑을 사용하면 된다.
+- 공개한 라이브러리를 사용하는 자바스크립트 사용자가 @types 의존성을 가지지 않게 해야 한다.
